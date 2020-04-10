@@ -8,6 +8,7 @@
 We aim to record audio messages in both languages, for each question, with the same (english) file name.
 As an illustration:
 
+```
 /recordings
     /english
         ask_region.wav
@@ -15,8 +16,9 @@ As an illustration:
     /french
         ask_region.wav
         ask_company.wav
+```
 
-For the path variable 'french', <audio expr="path + 'ask_region' + ext"> will give the french message.
+For the path variable 'french', `<audio expr="path + 'ask_region' + ext">` will give the french message.
 The same goes for all company and region names.
 This scheme supports possible local languages as well.
 
