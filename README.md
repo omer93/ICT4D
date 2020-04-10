@@ -1,4 +1,9 @@
 # VACARPA
+- Jesse van den Ende
+- Omer Erbek
+- Engel Hamer
+- Osman Muglu
+
 ## Explanation of audio design idea
 We aim to record audio messages in both languages, for each question, with the same (english) file name.
 As an illustration:
@@ -18,15 +23,14 @@ This scheme supports possible local languages as well.
 Unfortunately we did not have enough time to record these wav files, hence both options will now play
 English TTS.
 
-##
-Tree of possible decisions:
-
+## Tree of possible decisions:
+```
 Q1. Select language
     1. ENGLISH
     2. FRENCH
 
     Q2. Select region
-        1. REGION 2
+        1. REGION 1
         2. REGION 2
 
         Q3. Select mining company
@@ -74,3 +78,4 @@ Q1. Select language
                             2. NO -> END CALL
 
                         2. NO. -> BYE, END CALL.
+```
