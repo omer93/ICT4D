@@ -1,0 +1,403 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<vxml version = "2.1">
+    <!-- Set input to DTMF (keypad) only. -->
+    <property name="inputmodes" value="dtmf"/>
+    <!-- Set variables for audio files -->
+    <var name="path" expr="'recordings/'"/>
+    <var name="ext" expr="'.wav'"/>
+    <var name="region" expr="''"/>
+    <var name="company" expr="''"/>
+    <var name="type" expr="''"/>
+    <var name="category" expr="''"/>
+
+    <!--
+        Ask the caller tot select a language.
+        Currently either English or French.
+    -->
+    <menu id="select-language" dtmf="true">
+        <prompt>
+            Welcome to VACARPA.
+            <break time="1000ms"/>
+            To use VACARPA in English, press 1.
+            <break time="1000ms"/>
+            To use VACARPA in French, press 2.
+            <break time="1000ms"/>
+        </prompt>
+
+        <!-- Select a language. -->
+        <choice event="language-selected" message="english"/>
+        <choice event="language-selected" message="french"/>
+
+        <!--
+            Change the path to the one for the selected language.
+            Can be 'path/english' or 'path/french' at the moment.
+            NOTE: Currently no action is taken, but if audio clips instead of text to speech are implemented,
+            the path wil ensure all following communication is in the correct language.
+
+            We aim to record audio messages in both languages, for each question, with the same (english) file name.
+            As an illustration:
+
+            /recordings
+                /english
+                    ask_region.wav
+                    ask_company.wav
+                /french
+                    ask_region.wav
+                    ask_company.wav
+
+            For the path variable 'french', <audio expr="path + 'ask_region' + ext"> will give the french message.
+            The same goes for all company and region names.
+            This scheme supports possible local languages as well.
+
+            Unfortunately we did not have enough time to record these wav files, hence both options will now play
+            English TTS.
+        -->
+        <catch event="language-selected">
+            <prompt>
+                Language selected is now <value expr="_message"/>
+                <break time="1000ms"/>
+            </prompt>
+            <assign name="path" expr="path + _message + '/'"/>
+
+            <!-- Proceed with region selection. -->
+            <goto next="#select-region"/>
+        </catch>
+    </menu>
+
+    <!--
+        Ask the caller tot select a region.
+        Currently either 'region-1' or 'region-2'.
+    -->
+    <menu id="select-region" dtmf="true">
+        <prompt>
+            <!-- To select 'region-1' press 1, ... -->
+            <!-- <audio expr="path + 'ask_region' + ext"> -->
+            Please select a region.
+            <break time="1000ms"/>
+            To select region 1, press 1
+            <break time="1000ms"/>
+            To select region 2, press 2
+            <break time="1000ms"/>
+        </prompt>
+
+        <!-- Select the region. -->
+        <choice event="region-selected" message="region-1"/>
+        <choice event="region-selected" message="region-2"/>
+
+        <!--
+            Assigns selected region to "region".
+            Can be 'region-1' or 'region-2' at the moment.
+        -->
+        <catch event="region-selected">
+            <prompt>
+                Region selected is now <value expr="_message"/>
+                <break time="1000ms"/>
+            </prompt>
+            <assign name="region" expr="_message"/>
+
+            <!-- Proceed with company selection. -->
+            <goto expr="'#select-company-' + region"/>
+        </catch>
+    </menu>
+
+    <!--
+        Ask the caller tot select a company in region-1.
+    -->
+    <menu id="select-company-region-1" dtmf="true">
+        <prompt>
+            <!-- <audio expr="path + 'ask_company_region_1' + ext"> -->
+            Please select a company.
+            <break time="1000ms"/>
+            To select alpha, press 1.
+            <break time="1000ms"/>
+            To select beta, press 2.
+            <break time="1000ms"/>
+        </prompt>
+
+        <!-- Select the company from available options in current region. -->
+        <choice event="company-selected" message="alpha"/>
+        <choice event="company-selected" message="beta"/>
+
+        <!--
+            Assigns selected company to "company".
+        -->
+        <catch event="company-selected">
+            <prompt>
+                Company selected is now <value expr="_message"/>
+                <break time="1000ms"/>
+            </prompt>
+            <assign name="company" expr="_message"/>
+
+            <!-- Proceed with service selection. -->
+            <goto next="#select-service"/>
+        </catch>
+    </menu>
+
+    <!--
+        Ask the caller tot select a company in region-1.
+    -->
+    <menu id="select-company-region-2" dtmf="true">
+        <prompt>
+            <!-- <audio expr="path + 'ask_company_region_2' + ext"> -->
+            Please select a company.
+            <break time="1000ms"/>
+            To select charlie, press 1
+            <break time="1000ms"/>
+            To select delta, press 2
+            <break time="1000ms"/>
+        </prompt>
+
+        <choice event="company-selected" message="charlie"/>
+        <choice event="company-selected" message="delta"/>
+
+        <!--
+            Assigns selected company to "company".
+        -->
+        <catch event="company-selected">
+            <prompt>
+                Company selected is now <value expr="_message"/>
+                <break time="1000ms"/>
+            </prompt>
+            <assign name="company" expr="_message"/>
+
+            <!-- Proceed with service selection. -->
+            <goto next="#select-service"/>
+        </catch>
+    </menu>
+
+    <!--
+        Ask the caller tot select a service.
+        Currently either retrieve reports, or submit a new report.
+    -->
+    <menu id="select-service" dtmf="true">
+        <prompt>
+            <!-- <audio expr="path + 'ask_service' + ext"> -->
+            What do you want to do?
+            <break time="1000ms"/>
+            Retrieve reports? Press 1.
+            <break time="1000ms"/>
+            Submit new report? Press 2.
+            <break time="1000ms"/>
+        </prompt>
+
+        <!-- Proceed with the service of choice. -->
+        <choice next="#retrieve-reports"/>
+        <choice next="#submit-report"/>
+    </menu>
+
+    <!--
+        Retrieve reports from CARPA.
+    -->
+    <menu id="retrieve-reports" dtmf="true">
+        <prompt>
+            <!-- To select 'region-1' press 1, ... -->
+            <!-- <audio expr="path + 'ask_region' + ext"> -->
+            Retrieving reports for <value expr="company"/> in <value expr="region"/>
+            <break time="1000ms"/>
+            Select the time duration
+            <break time="1000ms"/>
+            For one month, press 1
+            <break time="1000ms"/>
+            For one year, press 2
+        </prompt>
+
+        <choice event="duration-selected" message="month"/>
+        <choice event="duration-selected" message="year"/>
+
+        <!--
+            Retrieve reports, now just reads static data for demo.
+        -->
+        <catch event="duration-selected">
+            <prompt>
+                <!-- Data is now hardcoded, but would be dynamically loaded from CARPA. -->
+                The reports of the last <value expr="_message"/> are:
+                <break time="1000ms"/>
+                1 incident regarding child labor
+                <break time="1000ms"/>9
+                3 positive reports regarding wages
+                <break time="1000ms"/>
+            </prompt>
+
+            <!-- Ask to end session or restart. -->
+            <goto next="#select-end-or-restart"/>
+        </catch>
+    </menu>
+
+    <!--
+        Submit a report, consisting of:
+        - Type: negative (incident) or positive (initiative) selected first.
+    -->
+    <menu id="submit-report" dtmf="true">
+        <prompt>
+            <!-- To select 'region-1' press 1, ... -->
+            <!-- <audio expr="path + 'ask_region' + ext"> -->
+            If you want to submit a negative incident report, press 1
+            <break time="1000ms"/>
+            If you want to submit a positive initiative report, press 2
+            <break time="1000ms"/>
+        </prompt>
+
+        <!-- Select the type. -->
+        <choice event="report-type-selected" message="negative"/>
+        <choice event="report-type-selected" message="positive"/>
+
+        <!--
+            Assigns selected type to "type".
+        -->
+        <catch event="report-type-selected">
+            <prompt>
+                Report type selected is now <value expr="_message"/>
+                <break time="1000ms"/>
+            </prompt>
+            <assign name="type" expr="_message"/>
+
+            <!-- Proceed with company selection. -->
+            <goto expr="'#select-' + type + '-report-category'"/>
+        </catch>
+    </menu>
+
+    <!--
+        Ask the caller tot select a category for the report from a range of negative options.
+    -->
+    <menu id="select-negative-report-category" dtmf="true">
+        <prompt>
+            <!-- <audio expr="path + 'ask_negative_categories' + ext"> -->
+            Select one of the following negative report categories
+            <break time="1000ms"/>
+            For WAGES, press 1
+            <break time="1000ms"/>
+            For LABOR CIRCUMSTANCES, press 2
+            <break time="1000ms"/>
+            For CHILD LABOR, press 3
+            <break time="1000ms"/>
+            For MANAGEMENT, press 4
+            <break time="1000ms"/>
+        </prompt>
+
+        <choice event="negative-report-category-selected" message="wages"/>
+        <choice event="negative-report-category-selected" message="labor-circumstances"/>
+        <choice event="negative-report-category-selected" message="child-labor"/>
+        <choice event="negative-report-category-selected" message="management"/>
+
+        <!--
+            Store report category.
+        -->
+        <catch event="negative-report-category-selected">
+            <prompt>
+                Report category selected is now <value expr="_message"/>
+            </prompt>
+
+            <assign name="category" expr="_message"/>
+
+            <!-- Proceed with confirmation. -->
+            <goto next="#confirm-or-restart"/>
+        </catch>
+    </menu>
+
+    <!--
+        Ask the caller tot select a category for the report from a range of positive options.
+    -->
+    <menu id="select-positive-report-category" dtmf="true">
+        <prompt>
+            <!-- <audio expr="path + 'ask_category_positive' + ext"> -->
+            Select one of the following positive report categories
+            <break time="1000ms"/>
+            For WAGES, press 1
+            <break time="1000ms"/>
+            For LABOR CIRCUMSTANCES, press 2
+            <break time="1000ms"/>
+            For SUSTAINABILITY, press 3
+            <break time="1000ms"/>
+            For MANAGEMENT, press 4
+            <break time="1000ms"/>
+        </prompt>
+
+        <choice event="positive-report-category-selected" message="wages"/>
+        <choice event="positive-report-category-selected" message="labor-circumstances"/>
+        <choice event="positive-report-category-selected" message="sustainability"/>
+        <choice event="positive-report-category-selected" message="management"/>
+
+        <!--
+            Store report category.
+        -->
+        <catch event="positive-report-category-selected">
+            <prompt>
+                Report category selected is now <value expr="_message"/>
+            </prompt>
+
+            <assign name="category" expr="_message"/>
+
+            <!-- Proceed with confirmation. -->
+            <goto next="#confirm-or-restart"/>
+        </catch>
+    </menu>
+
+    <!--
+        Ask the caller if they want to submit the report or discard.
+        All data is repeated to the caller to ensure they are making the right choice and did not forget anything.
+    -->
+    <menu id="confirm-or-restart" dtmf="true">
+        <prompt>
+            You are about to submit a report with
+            <break time="1000ms"/>
+            Type <break time="300ms"/> <value expr="type"/>
+            <break time="1000ms"/>
+            Category <break time="300ms"/> <value expr="category"/>
+            <break time="1000ms"/>
+            For company <break time="300ms"/> <value expr="company"/>
+            <break time="1000ms"/>
+            In region <break time="300ms"/> <value expr="region"/>
+            <break time="1500ms"/>
+            To confirm and submit this report, press 1
+            <break time="1000ms"/>
+            To discard this report, press 2
+        </prompt>
+
+        <!-- Proceed with the confirm or discard. -->
+        <choice event="confirm-submit-report"/>
+        <choice next="#select-end-or-restart"/>
+
+        <!--
+            Submits the report.
+            NOTE: In the final version this would submit the report to CARPA.
+        -->
+        <catch event="confirm-submit-report">
+            <prompt>
+                Report successfully submitted.
+                <break time="1000ms"/>
+            </prompt>
+
+            <goto next="#select-end-or-restart"/>
+        </catch>
+    </menu>
+
+    <!-- Ask the caller if they want to restart or end VACARPA. -->
+    <menu id="select-end-or-restart" dtmf="true">
+        <prompt>
+            <!-- <audio expr="path + 'restart_or_end' + ext"> -->
+            If you want to restart VACARPA, press 1
+            <break time="1000ms"/>
+            If you want to end this session, press 2
+            <break time="1000ms"/>
+        </prompt>
+
+        <!-- Go to region selection again, or end session. -->
+        <choice next="#select-region"/>
+        <choice event="end-session"/>
+
+        <!--
+            Ends the session.
+        -->
+        <catch event="end-session">
+            <prompt>
+                Thank you for using VACARPA.
+                <break time="1000ms"/>
+                Bye
+                <break time="1000ms"/>
+            </prompt>
+
+            <disconnect/>
+        </catch>
+    </menu>
+</vxml>
